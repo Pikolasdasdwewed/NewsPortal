@@ -1,26 +1,38 @@
 <?php
-//Вычислить маршрут из адресной строки
-    $host = explode('?', $_SERVER['REQUEST_URI']) [0];
-    $num = substr_count($host, '/');
-    $path = explode('/', $host) [$num];
 
-    if($path == '' OR $path == 'index' OR $path == 'index.php') {
-        $response = Controller::StartSite();
-    }
+// Получаем путь без параметров
+$host = explode('?', $_SERVER['REQUEST_URI'])[0];
 
-    elseif($path == 'all') {
-        $response = Controller::AllNews();
-    }
+// Убираем первый и последний слеш, затем делим на части
+$parts = explode('/', trim($host, '/'));
 
-    elseif($path == 'category' and isset($_GET['id'])) {
-        $response = Controller::NewsByCatID($_GET['id']);
-    }
+// Если сайт находится в подпапке (например /newsportal),
+// то $parts[0] = 'newsportal', а реальный путь начинается с $parts[1]
+if ($parts[0] === 'newsPortalPikolad') {
+    $path = $parts[1] ?? '';
+} else {
+    $path = $parts[0] ?? '';
+}
 
-    elseif($path == 'news' and isset($_GET['id'])) {
-        $response = Controller::NewsByID($_GET['id']);
-    }
+// Маршрутизация
+if ($path === '' || $path === 'index' || $path === 'index.php') {
+    $response = Controller::StartSite();
+}
 
-    else {
-        $response = Controller::error404();
-    }
+elseif ($path === 'all') {
+    $response = Controller::AllNews();
+}
+
+elseif ($path === 'category' && isset($_GET['id'])) {
+    $response = Controller::NewsByCatID($_GET['id']);
+}
+
+elseif ($path === 'news' && isset($_GET['id'])) {
+    $response = Controller::NewsByID($_GET['id']);
+}
+
+else {
+    $response = Controller::error404();
+}
+
 ?>

@@ -7,7 +7,7 @@ class ViewNews{
             width=150 /><br>';
             echo "<h2>".$value['title']."</h2>";
 
-            echo "<a href='news?id='>".$value['id']."'>Edasi</a><br>";
+            echo "<a href='news?id=".$value['id']."'>Edasi</a></li><br>";
         }
     }
 
@@ -15,7 +15,7 @@ class ViewNews{
         foreach($arr as $value) {
             echo "<li>".$value['title'];
 
-            echo "<a href='news?id".$value['id']."'>Edasi</a></li><br>";
+            echo "<a href='news?id=".$value['id']."'>Edasi</a></li><br>";
         }
     }
 

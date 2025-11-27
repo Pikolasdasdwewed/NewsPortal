@@ -22,6 +22,11 @@ class Controller {
         include_once 'view/catnews.php';
     }
 
+    public static function NewsByID($id) {
+        $n = News::getNewsByID($id);
+        include_once 'view/readnews.php';
+    }
+
         public static function error404() {
             include_once 'view/error404.php';
         }

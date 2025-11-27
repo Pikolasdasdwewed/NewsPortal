@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once 'inc/Database.php';
-require 'model/Categoty.php';
+require 'model/Category.php';
 require 'model/News.php';
 
 include_once 'view/news.php';
