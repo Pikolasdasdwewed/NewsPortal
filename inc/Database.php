@@ -48,8 +48,13 @@ class database {
     function getAll($query) {
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        $stmt->setFetchMode(PDO:FETCH_ASSOC);
+        $stmt->setFetchMode(PDO::FETCH_ASSOC);
         $response = $stmt->fetchAll();
+        return $response;
+    }
+
+    function executeRun($query) {
+        $response  = $this->conn->exec($query);
         return $response;
     }
 }
