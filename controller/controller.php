@@ -1,5 +1,7 @@
 <?php
 
+use Dom\Comment;
+
 class Controller {
 
     public static function StartSite() {
@@ -26,9 +28,14 @@ class Controller {
         $n = News::getNewsByID($id);
         include_once 'view/readnews.php';
     }
-
         public static function error404() {
             include_once 'view/error404.php';
+        }
+
+        public static function InsertComment($c,$id) {
+        Comments::InsertComment($c,$id);
+        //self::NewByID($id);
+        header('Location:news?id='.$id.'#ctable');
         }
 }
 
