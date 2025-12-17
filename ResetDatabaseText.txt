@@ -1,0 +1,95 @@
+-----------SQL запрос чтобы добавить снова стартовые данные в в базу--------------
+START TRANSACTION;
+
+-- 1) ALL -> All (если такая категория существует)
+UPDATE category
+SET name = 'All'
+WHERE name = 'ALL';
+
+-- 2) Подготовим "куда переносить" новости из Stardileht:
+--    приоритет: All -> Eesti -> (если вообще ничего нет, оставим 1)
+SET @cat_all   := (SELECT id FROM category WHERE name = 'All'   LIMIT 1);
+SET @cat_eesti := (SELECT id FROM category WHERE name = 'Eesti' LIMIT 1);
+SET @cat_target := COALESCE(@cat_all, @cat_eesti, 1);
+
+-- Переносим новости из категории Stardileht в @cat_target
+UPDATE news
+SET category_id = @cat_target
+WHERE category_id IN (SELECT id FROM category WHERE name = 'Stardileht');
+
+-- Теперь можно удалить Stardileht
+DELETE FROM category
+WHERE name = 'Stardileht';
+
+-- 3) Вставка стартовых новостей (как в дампе), но:
+--    - новости 1..3 были в Stardileht -> теперь идут в @cat_target
+--    - у новости 8 новая картинка (URL)
+INSERT INTO news (id, title, text, picture, category_id, user_id) VALUES
+(1, 'Automaks jäi tähtajaks tasumata 60 000 isikul',
+ 'Teisipäeva hommiku seisuga on kaheksa maksumaksjat kümnest automaksu õigeaegselt tasunud, öeldi ERR-ile maksu- ja tolliametist (MTA). Esmaspäeval oli mootorsõidukimaksu teise osamakse tähtaeg. MTA tulude osakonna võlahalduse juht Kadri Kööp selgitas, et võlglastele saadetakse meeldetuletused ja vajadusel alustatakse menetlusi.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2025%2F07%2F22%2F2954802h58f8.jpg',
+ @cat_target, 2),
+
+(2, 'Riik annaks sõjaajal 56 000 erasektori inimesele kriisiülesanded',
+ 'Ministeeriumid koostavad tsiviilkriisi ja riigikaitse seadust, mis koondab üheks õigusraamiks kolm seni eraldi kehtinud seadust. Selle järgi oleks erasektorist tuleva sõjaajakoosseisu suurus pea 56 000 inimest. Uus raamistik hõlmaks hädaolukorra seadust, erakorralise seisukorra seadust ning riigikaitseseadust.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2025%2F05%2F15%2F2864367h9cf7.jpg',
+ @cat_target, 2),
+
+(3, 'Riik plaanib muuta andmejälgija avalike andmekogude jaoks kohustuslikuks',
+ 'Justiits- ja digiministeerium plaanib kehtestada isikuandmetega seotud avalikele infosüsteemidele kohustuse võtta kasutusele andmejälgija. Lahendus annab inimesele ülevaate, kes ja millal on tema andmeid vaadanud, ning aitab suurendada läbipaistvust riiklikes andmekogudes.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2025%2F07%2F12%2F2940084h2745.jpg',
+ @cat_target, 2),
+
+(4, 'Tallinnas avati uus noortekeskus, mis pakub tasuta koolitusi',
+ 'Tallinna linn avas uue noortekeskuse, kus saab osaleda tasuta IT- ja keelekoolitustel. Linnavalitsuse sõnul on eesmärk toetada noorte praktilisi oskusi ning pakkuda turvalist vaba aja veetmise võimalust.',
+ 'https://s.err.ee/photo/crop/2025/12/16/3126601hd851t63.jpg',
+ 2, 2),
+
+(5, 'Terviseamet hoiatab: sügis toob kaasa suurema viiruskoormuse',
+ 'Terviseamet tuletab meelde, et sügishooajal kasvab viirushaiguste levik. Inimestel soovitatakse jälgida hügieeni, jääda haigena koju ning riskirühmadel kaaluda vaktsineerimist.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2024%2F11%2F26%2F2634139h350f.jpg',
+ 2, 2),
+
+(6, 'Vene naftahinnad kukkusid viimaste aastate madalaimale tasemele',
+ 'Uudisteagentuur Bloomberg teatas, et Moskva-vastased sanktsioonid avaldavad mõju ja Venemaa naftahinnad langesid madalaimale tasemele pärast Ukraina sõja puhkemist. Läänemerelt, Mustalt merelt ja Kaug-Ida Kozmino sadamast tarnitava Vene toornafta hinnad langesid umbes 40 dollarini barrelist.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2022%2F05%2F07%2F1461586hf689.jpg',
+ 3, 2),
+
+(7, 'Euroopa Liit arutab uusi energiajulgeoleku meetmeid',
+ 'Euroopa Liidu liikmesriigid arutavad energiajulgeoleku suurendamist ning võimalikke täiendavaid samme, et stabiliseerida turgu ja vähendada hinnakõikumisi. Eesmärk on tagada tarnekindlus ning kaitsta tarbijaid.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2025%2F11%2F18%2F3092871hee2a.jpg',
+ 3, 2),
+
+(8, 'Õppus testib kriisiteavituse süsteeme üle Eesti',
+ 'Sel nädalal toimub üleriigiline õppus, mille käigus testitakse kriisiteavituse kanaleid ning koostööd kohalike omavalitsuste ja riigiasutuste vahel. Harjutuse eesmärk on parandada valmisolekut eriolukordadeks.',
+ 'https://kriis.ee/sites/default/files/styles/news_thumbnail_full/public/2025-05/Ohuteavitus_cover_1920x1080px_EST.png?itok=sn2FartZ',
+ 4, 2),
+
+(9, 'Päästeamet ja Kaitseliit harjutavad ühiselt evakuatsiooni korraldamist',
+ 'Koostööõppusel keskendutakse elanike teavitamisele, transpordikorraldusele ja ajutiste majutuskohtade valmisolekule. Korraldajate sõnul aitab ühisõppus parandada tegevuste koordineerimist.',
+ 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1200&q=60',
+ 4, 2),
+
+(10, 'Inflatsioon aeglustus, kuid toidukaupade hinnad püsivad kõrged',
+ 'Analüütikute sõnul on inflatsioon mõnevõrra aeglustunud, kuid igapäevakaupade hinnad mõjutavad jätkuvalt leibkondade eelarvet. Tarbijad on muutunud hinnatundlikumaks ja otsivad soodsamaid alternatiive.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2025%2F12%2F16%2F3127237h6a68.jpg',
+ 5, 2),
+
+(11, 'Eesti ettevõtted investeerivad rohkem küberturvalisusse',
+ 'Ettevõtted suurendavad investeeringuid küberturbe lahendustesse, et vähendada andmelekkete ja teenusetõkete riski. Ekspertide hinnangul kasvab lähiaastatel nõudlus ka turbespetsialistide järele.',
+ 'https://i.err.ee/smartcrop?type=optimize&width=1072&aspectratio=16%3A10&url=https%3A%2F%2Fs.err.ee%2Fphoto%2Fcrop%2F2023%2F04%2F08%2F1859978hc7a1.jpg',
+ 5, 2),
+
+(12, 'Politsei pidas kinni vargustes kahtlustatava mehe',
+ 'Politsei teatel peeti kinni mees, keda kahtlustatakse mitmes varguses. Uurimine jätkub ning politsei palub pealtnägijatel jagada täiendavat infot.',
+ 'https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&q=60',
+ 6, 2)
+
+ON DUPLICATE KEY UPDATE
+  title = VALUES(title),
+  text = VALUES(text),
+  picture = VALUES(picture),
+  category_id = VALUES(category_id),
+  user_id = VALUES(user_id);
+
+COMMIT;
